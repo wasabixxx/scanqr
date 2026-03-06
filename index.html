@@ -82,7 +82,10 @@ function onScanSuccess(scanned){
         "<div class='status red'>❌ VÉ ĐÃ SỬ DỤNG</div>"+
         "<h2>"+data.name+"</h2>"+
         "<div class='info'>"+
+        "<b>SĐT:</b> "+(data.phone||"—")+"<br>"+
+        "<b>Email:</b> "+(data.email||"—")+"<br>"+
         "<b>Hạng vé:</b> "+(data.ticketType||"—")+"<br>"+
+        "<b>Số lượng:</b> "+(data.quantity||"—")+"<br>"+
         "<b>Mã vé:</b> <span class='ticket-code'>"+(data.ticket||"—")+"</span>"+
         "</div></div>";
     }
