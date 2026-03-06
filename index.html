@@ -1,28 +1,184 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
-body{font-family:Arial;text-align:center;padding:20px}
-.card{max-width:350px;margin:15px auto;padding:20px;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.15)}
-.card-ok{border-top:5px solid #27ae60}
-.card-used{border-top:5px solid #e74c3c}
-.card-notfound{border-top:5px solid #e74c3c}
-.card h2{margin:0 0 5px}
-.card .status{font-size:26px;font-weight:bold;margin-bottom:10px}
-.card .status.green{color:#27ae60}
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:#0a0a0a;
+  color:#fff;
+  min-height:100vh;
+  padding:12px;
+  padding-bottom:env(safe-area-inset-bottom,12px);
+}
+
+.header{
+  text-align:center;
+  padding:16px 0 12px;
+}
+.header h1{
+  font-size:20px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:#fff;
+}
+.header .subtitle{
+  font-size:12px;
+  color:#888;
+  margin-top:4px;
+}
+
+/* Scanner container */
+#reader{
+  width:100%!important;
+  max-width:400px;
+  margin:0 auto 16px;
+  border-radius:16px;
+  overflow:hidden;
+  background:#111;
+}
+#reader video{border-radius:16px}
+#reader img[alt="Info icon"]{display:none}
+
+/* Override scanner UI */
+#html5-qrcode-anchor-scan-type-change{
+  color:#aaa!important;
+  text-decoration:none!important;
+  font-size:13px!important;
+}
+#reader select, #reader button{
+  background:#222!important;
+  color:#fff!important;
+  border:1px solid #333!important;
+  border-radius:8px!important;
+  padding:8px 12px!important;
+  font-size:14px!important;
+}
+#reader button{
+  background:#c9a44a!important;
+  color:#000!important;
+  font-weight:600!important;
+  border:none!important;
+}
+#reader__dashboard_section_swaplink{
+  color:#c9a44a!important;
+}
+
+/* Result card */
+.card{
+  max-width:400px;
+  margin:16px auto;
+  padding:24px 20px;
+  border-radius:16px;
+  animation:slideUp 0.3s ease;
+}
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.card-ok{
+  background:linear-gradient(135deg,#0d2818,#1a3a2a);
+  border:1px solid #27ae60;
+}
+.card-used{
+  background:linear-gradient(135deg,#2a0d0d,#3a1a1a);
+  border:1px solid #e74c3c;
+}
+.card-notfound{
+  background:linear-gradient(135deg,#2a1a0d,#3a2a1a);
+  border:1px solid #e67e22;
+}
+
+.card .status-icon{
+  font-size:40px;
+  margin-bottom:8px;
+}
+.card .status{
+  font-size:22px;
+  font-weight:700;
+  text-align:center;
+  margin-bottom:4px;
+}
+.card .status.green{color:#2ecc71}
 .card .status.red{color:#e74c3c}
-.card .info{text-align:left;background:#f8f8f8;border-radius:8px;padding:12px 15px;margin-top:12px;font-size:15px;line-height:1.8}
-.card .info b{display:inline-block;min-width:90px}
-.card .ticket-code{font-family:monospace;font-size:14px;background:#eee;padding:4px 8px;border-radius:4px}
+.card .status.orange{color:#e67e22}
+
+.card .name{
+  text-align:center;
+  font-size:24px;
+  font-weight:700;
+  margin:8px 0 16px;
+  color:#fff;
+}
+
+.card .info{
+  background:rgba(255,255,255,0.06);
+  border-radius:12px;
+  padding:14px 16px;
+  font-size:14px;
+  line-height:2;
+}
+.card .info .row{
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  padding:2px 0;
+}
+.card .info .row:last-child{border-bottom:none}
+.card .info .label{color:#999;font-size:13px}
+.card .info .value{color:#fff;font-weight:500;text-align:right;max-width:60%;word-break:break-all}
+
+.ticket-code{
+  font-family:'Courier New',monospace;
+  font-size:12px;
+  background:rgba(255,255,255,0.1);
+  padding:3px 8px;
+  border-radius:6px;
+  letter-spacing:0.5px;
+}
+
+/* Loading */
+.loading{
+  text-align:center;
+  padding:30px;
+  color:#c9a44a;
+  font-size:18px;
+  font-weight:600;
+  animation:pulse 1s infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1}
+  50%{opacity:0.5}
+}
+
+/* Error */
+.error-card{
+  max-width:400px;
+  margin:16px auto;
+  text-align:center;
+  background:#1a1a1a;
+  border:1px solid #e74c3c;
+  border-radius:16px;
+  padding:24px;
+  color:#e74c3c;
+  font-weight:600;
+}
 </style>
 </head>
 
 <body>
 
-<h2>Check-in vé</h2>
-<div id="reader" style="width:300px;margin:auto"></div>
+<div class="header">
+  <h1>SILVER ERA Check-in</h1>
+  <div class="subtitle">Quét mã QR trên vé để check-in</div>
+</div>
+
+<div id="reader"></div>
 
 <div id="result"></div>
 
@@ -32,27 +188,31 @@ var api="https://script.google.com/macros/s/AKfycbyF1MoHYIAapOYF0F3ck9j9ntmpktGk
 
 var scanning = true;
 
-var scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:250});
+var scanner = new Html5QrcodeScanner("reader",{
+  fps:10,
+  qrbox:{width:220,height:220},
+  rememberLastUsedCamera:true,
+  showTorchButtonIfSupported:true
+});
+
+function makeRow(label,value){
+  return "<div class='row'><span class='label'>"+label+"</span><span class='value'>"+(value||"—")+"</span></div>";
+}
 
 function onScanSuccess(scanned){
 
-  // Chặn quét trùng lặp
   if(!scanning) return;
   scanning = false;
 
-  // QR có thể chứa URL đầy đủ hoặc mã vé thuần
-  // Trích xuất mã vé từ URL nếu cần
   var ticket = scanned;
   try {
     var url = new URL(scanned);
     var t = url.searchParams.get("ticket");
     if(t) ticket = t;
-  } catch(e) {
-    // Không phải URL → dùng nguyên giá trị đã quét
-  }
+  } catch(e) {}
 
   document.getElementById("result").innerHTML=
-    "<div style='color:orange;font-size:22px'>Đang kiểm tra vé...</div>";
+    "<div class='loading'>Đang kiểm tra vé...</div>";
 
   fetch(api+"?ticket="+encodeURIComponent(ticket)+"&format=json")
   .then(function(r){
@@ -66,47 +226,50 @@ function onScanSuccess(scanned){
     if(data.status=="ok"){
       el.innerHTML=
         "<div class='card card-ok'>"+
-        "<div class='status green'>✅ CHECK-IN THÀNH CÔNG</div>"+
-        "<h2>"+data.name+"</h2>"+
+        "<div style='text-align:center'><div class='status-icon'>✅</div></div>"+
+        "<div class='status green'>CHECK-IN THÀNH CÔNG</div>"+
+        "<div class='name'>"+data.name+"</div>"+
         "<div class='info'>"+
-        "<b>SĐT:</b> "+(data.phone||"—")+"<br>"+
-        "<b>Email:</b> "+(data.email||"—")+"<br>"+
-        "<b>Tổ chức:</b> "+(data.org||"—")+"<br>"+
-        "<b>Hạng vé:</b> "+(data.ticketType||"—")+"<br>"+
-        "<b>Số lượng:</b> "+(data.quantity||"—")+"<br>"+
-        "<b>Mã vé:</b> <span class='ticket-code'>"+(data.ticket||"—")+"</span>"+
+        makeRow("SĐT",data.phone)+
+        makeRow("Email",data.email)+
+        makeRow("Tổ chức",data.org)+
+        makeRow("Hạng vé",data.ticketType)+
+        makeRow("Số lượng",data.quantity)+
+        makeRow("Mã vé","<span class='ticket-code'>"+data.ticket+"</span>")+
         "</div></div>";
     }
     else if(data.status=="used"){
       el.innerHTML=
         "<div class='card card-used'>"+
-        "<div class='status red'>❌ VÉ ĐÃ SỬ DỤNG</div>"+
-        "<h2>"+data.name+"</h2>"+
+        "<div style='text-align:center'><div class='status-icon'>❌</div></div>"+
+        "<div class='status red'>VÉ ĐÃ SỬ DỤNG</div>"+
+        "<div class='name'>"+data.name+"</div>"+
         "<div class='info'>"+
-        "<b>SĐT:</b> "+(data.phone||"—")+"<br>"+
-        "<b>Email:</b> "+(data.email||"—")+"<br>"+
-        "<b>Tổ chức:</b> "+(data.org||"—")+"<br>"+
-        "<b>Hạng vé:</b> "+(data.ticketType||"—")+"<br>"+
-        "<b>Số lượng:</b> "+(data.quantity||"—")+"<br>"+
-        "<b>Mã vé:</b> <span class='ticket-code'>"+(data.ticket||"—")+"</span>"+
+        makeRow("SĐT",data.phone)+
+        makeRow("Email",data.email)+
+        makeRow("Tổ chức",data.org)+
+        makeRow("Hạng vé",data.ticketType)+
+        makeRow("Số lượng",data.quantity)+
+        makeRow("Mã vé","<span class='ticket-code'>"+data.ticket+"</span>")+
         "</div></div>";
     }
     else{
       el.innerHTML=
         "<div class='card card-notfound'>"+
-        "<div class='status red'>⚠️ KHÔNG TÌM THẤY VÉ</div>"+
-        "<p>Mã quét: <span class='ticket-code'>"+(data.ticket||ticket)+"</span></p>"+
-        "</div>";
+        "<div style='text-align:center'><div class='status-icon'>⚠️</div></div>"+
+        "<div class='status orange'>KHÔNG TÌM THẤY VÉ</div>"+
+        "<div class='info'>"+
+        makeRow("Mã quét","<span class='ticket-code'>"+(data.ticket||ticket)+"</span>")+
+        "</div></div>";
     }
 
   })
   .catch(function(err){
     console.error("Lỗi:",err);
     document.getElementById("result").innerHTML=
-      "<div class='used'>⚠️ LỖI KẾT NỐI<br>"+err.message+"</div>";
+      "<div class='error-card'>⚠️ LỖI KẾT NỐI<br><span style='font-size:13px;font-weight:400'>"+err.message+"</span></div>";
   })
   .finally(function(){
-    // Cho phép quét lại sau 3 giây
     setTimeout(function(){ scanning = true; }, 3000);
   });
 
