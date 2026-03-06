@@ -25,20 +25,27 @@ var scanning = true;
 
 var scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:250});
 
-function onScanSuccess(ticket){
+function onScanSuccess(scanned){
 
   // Chặn quét trùng lặp
   if(!scanning) return;
   scanning = false;
 
+  // QR có thể chứa URL đầy đủ hoặc mã vé thuần
+  // Trích xuất mã vé từ URL nếu cần
+  var ticket = scanned;
+  try {
+    var url = new URL(scanned);
+    var t = url.searchParams.get("ticket");
+    if(t) ticket = t;
+  } catch(e) {
+    // Không phải URL → dùng nguyên giá trị đã quét
+  }
+
   document.getElementById("result").innerHTML=
     "<div style='color:orange;font-size:22px'>Đang kiểm tra vé...</div>";
 
-  fetch(api,{
-    method:"POST",
-    redirect:"follow",
-    body:new URLSearchParams({ticket:ticket})
-  })
+  fetch(api+"?ticket="+encodeURIComponent(ticket)+"&format=json")
   .then(function(r){
     if(!r.ok) throw new Error("HTTP "+r.status);
     return r.json();
