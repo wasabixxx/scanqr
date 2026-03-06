@@ -21,36 +21,57 @@ body{font-family:Arial;text-align:center;padding:20px}
 
 var api="https://script.google.com/macros/s/AKfycbyF1MoHYIAapOYF0F3ck9j9ntmpktGkccOttNETjaengFN0N753HHin20tovtmCqjNY/exec";
 
+var scanning = true;
+
+var scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:250});
+
 function onScanSuccess(ticket){
 
-fetch(api,{
-method:"POST",
-body:new URLSearchParams({ticket:ticket})
-})
-.then(r=>r.json())
-.then(data=>{
+  // Chặn quét trùng lặp
+  if(!scanning) return;
+  scanning = false;
 
-if(data.status=="ok"){
-document.getElementById("result").innerHTML=
-"<div class='ok'>CHECK-IN OK<br>"+data.name+"</div>";
+  document.getElementById("result").innerHTML=
+    "<div style='color:orange;font-size:22px'>Đang kiểm tra vé...</div>";
+
+  fetch(api,{
+    method:"POST",
+    redirect:"follow",
+    body:new URLSearchParams({ticket:ticket})
+  })
+  .then(function(r){
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return r.json();
+  })
+  .then(function(data){
+
+    if(data.status=="ok"){
+      document.getElementById("result").innerHTML=
+        "<div class='ok'>✅ CHECK-IN OK<br>"+data.name+"</div>";
+    }
+    else if(data.status=="used"){
+      document.getElementById("result").innerHTML=
+        "<div class='used'>❌ VÉ ĐÃ DÙNG<br>"+data.name+"</div>";
+    }
+    else{
+      document.getElementById("result").innerHTML=
+        "<div class='used'>⚠️ KHÔNG TÌM THẤY VÉ</div>";
+    }
+
+  })
+  .catch(function(err){
+    console.error("Lỗi:",err);
+    document.getElementById("result").innerHTML=
+      "<div class='used'>⚠️ LỖI KẾT NỐI<br>"+err.message+"</div>";
+  })
+  .finally(function(){
+    // Cho phép quét lại sau 3 giây
+    setTimeout(function(){ scanning = true; }, 3000);
+  });
+
 }
 
-else if(data.status=="used"){
-document.getElementById("result").innerHTML=
-"<div class='used'>VÉ ĐÃ DÙNG<br>"+data.name+"</div>";
-}
-
-else{
-document.getElementById("result").innerHTML=
-"<div class='used'>KHÔNG TÌM THẤY VÉ</div>";
-}
-
-});
-
-}
-
-new Html5QrcodeScanner("reader",{fps:10,qrbox:250})
-.render(onScanSuccess);
+scanner.render(onScanSuccess);
 
 </script>
 
