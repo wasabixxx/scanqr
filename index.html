@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+body{font-family:Arial;text-align:center;padding:20px}
+.ok{color:green;font-size:28px}
+.used{color:red;font-size:28px}
+</style>
+</head>
+
+<body>
+
+<h2>Check-in vé</h2>
+<div id="reader" style="width:300px;margin:auto"></div>
+
+<div id="result"></div>
+
+<script>
+
+var api="https://script.google.com/macros/s/AKfycbyF1MoHYIAapOYF0F3ck9j9ntmpktGkccOttNETjaengFN0N753HHin20tovtmCqjNY/exec";
+
+function onScanSuccess(ticket){
+
+fetch(api,{
+method:"POST",
+body:new URLSearchParams({ticket:ticket})
+})
+.then(r=>r.json())
+.then(data=>{
+
+if(data.status=="ok"){
+document.getElementById("result").innerHTML=
+"<div class='ok'>CHECK-IN OK<br>"+data.name+"</div>";
+}
+
+else if(data.status=="used"){
+document.getElementById("result").innerHTML=
+"<div class='used'>VÉ ĐÃ DÙNG<br>"+data.name+"</div>";
+}
+
+else{
+document.getElementById("result").innerHTML=
+"<div class='used'>KHÔNG TÌM THẤY VÉ</div>";
+}
+
+});
+
+}
+
+new Html5QrcodeScanner("reader",{fps:10,qrbox:250})
+.render(onScanSuccess);
+
+</script>
+
+</body>
+</html>
