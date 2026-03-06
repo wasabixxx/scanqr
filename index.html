@@ -5,8 +5,17 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 body{font-family:Arial;text-align:center;padding:20px}
-.ok{color:green;font-size:28px}
-.used{color:red;font-size:28px}
+.card{max-width:350px;margin:15px auto;padding:20px;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.15)}
+.card-ok{border-top:5px solid #27ae60}
+.card-used{border-top:5px solid #e74c3c}
+.card-notfound{border-top:5px solid #e74c3c}
+.card h2{margin:0 0 5px}
+.card .status{font-size:26px;font-weight:bold;margin-bottom:10px}
+.card .status.green{color:#27ae60}
+.card .status.red{color:#e74c3c}
+.card .info{text-align:left;background:#f8f8f8;border-radius:8px;padding:12px 15px;margin-top:12px;font-size:15px;line-height:1.8}
+.card .info b{display:inline-block;min-width:90px}
+.card .ticket-code{font-family:monospace;font-size:14px;background:#eee;padding:4px 8px;border-radius:4px}
 </style>
 </head>
 
@@ -52,17 +61,37 @@ function onScanSuccess(scanned){
   })
   .then(function(data){
 
+    var el = document.getElementById("result");
+
     if(data.status=="ok"){
-      document.getElementById("result").innerHTML=
-        "<div class='ok'>✅ CHECK-IN OK<br>"+data.name+"</div>";
+      el.innerHTML=
+        "<div class='card card-ok'>"+
+        "<div class='status green'>✅ CHECK-IN THÀNH CÔNG</div>"+
+        "<h2>"+data.name+"</h2>"+
+        "<div class='info'>"+
+        "<b>SĐT:</b> "+(data.phone||"—")+"<br>"+
+        "<b>Email:</b> "+(data.email||"—")+"<br>"+
+        "<b>Hạng vé:</b> "+(data.ticketType||"—")+"<br>"+
+        "<b>Số lượng:</b> "+(data.quantity||"—")+"<br>"+
+        "<b>Mã vé:</b> <span class='ticket-code'>"+(data.ticket||"—")+"</span>"+
+        "</div></div>";
     }
     else if(data.status=="used"){
-      document.getElementById("result").innerHTML=
-        "<div class='used'>❌ VÉ ĐÃ DÙNG<br>"+data.name+"</div>";
+      el.innerHTML=
+        "<div class='card card-used'>"+
+        "<div class='status red'>❌ VÉ ĐÃ SỬ DỤNG</div>"+
+        "<h2>"+data.name+"</h2>"+
+        "<div class='info'>"+
+        "<b>Hạng vé:</b> "+(data.ticketType||"—")+"<br>"+
+        "<b>Mã vé:</b> <span class='ticket-code'>"+(data.ticket||"—")+"</span>"+
+        "</div></div>";
     }
     else{
-      document.getElementById("result").innerHTML=
-        "<div class='used'>⚠️ KHÔNG TÌM THẤY VÉ</div>";
+      el.innerHTML=
+        "<div class='card card-notfound'>"+
+        "<div class='status red'>⚠️ KHÔNG TÌM THẤY VÉ</div>"+
+        "<p>Mã quét: <span class='ticket-code'>"+(data.ticket||ticket)+"</span></p>"+
+        "</div>";
     }
 
   })
